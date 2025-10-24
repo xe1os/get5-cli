@@ -40,7 +40,7 @@ At [Laclede's LAN](https://github.com/LacledesLAN/) we run the majority of our g
 that are explained [here](https://github.com/LacledesLAN/README.1ST/blob/master/GameServers/DockerAndGameServers.md). To be able to
 containerize `get5` we need a way to dynamically inject get5 config files into the docker container.
 
-## Why GO(lang) was Chosen
+## Why GO(lang) was Chosen?
 
 When choosing a language our key requirement was to able to compile native-binaries that could be added directly to Docker images without
 needing to include additional required dependencies. GO fit this criteria; and since we had multiple active projects being written in GO
