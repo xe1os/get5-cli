@@ -1,32 +1,45 @@
-name: linux/amd64
+name: Build get5-cli (Linux & Windows)
 
 on:
   schedule:
     - cron: '0 0 1 */2 *' # Every other month
-
   push:
     branches: [ master ]
-
-  workflow_dispatch: # Allows action to be run manually from the Actions tab
+  workflow_dispatch:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        goos: [linux, windows]
+        goarch: [amd64]
+
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v5
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: 1.19
           cache: true
-      - name: Test
+
+      - name: Run Tests (only once)
+        if: matrix.goos == 'linux'
         run: go test ./...
-      - name: Build
-        run: go build -ldflags="-X main.GitCommitHash=$(git rev-parse --short HEAD)" -o ./get5 ./cmd/build-config/main.go
-      - name: Save artifact
+
+      - name: Build for ${{ matrix.goos }}/${{ matrix.goarch }}
+        run: |
+          mkdir -p build/${{ matrix.goos }}-${{ matrix.goarch }}
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} \
+          go build -ldflags="-X main.GitCommitHash=$(git rev-parse --short HEAD)" \
+          -o build/${{ matrix.goos }}-${{ matrix.goarch }}/get5${{ matrix.goos == 'windows' && '.exe' || '' }} \
+          ./cmd/build-config/main.go
+
+      - name: Upload Artifact (${{ matrix.goos }})
         uses: actions/upload-artifact@v4
         with:
-          name: get5-cli
-          path: ./get5
+          name: get5-cli-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: build/${{ matrix.goos }}-${{ matrix.goarch }}/
